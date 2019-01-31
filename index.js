@@ -1,35 +1,18 @@
-// inject summernote css into the admin interface
-$('head').append('<link href="https://cdnjs.cloudflare.com/ajax/libs/trix/1.0.0/trix.css" rel="stylesheet">');
-$('head').append('<style>.trix { margin: 10px 0; }</style>');
+const enduro_trix = function () {}
 
-// * ———————————————————————————————————————————————————————— * //
-// *	trix directive
-// * ———————————————————————————————————————————————————————— * //
-enduro_admin_app.compileProvider
-	.directive('trix', function () {
-		return {
-      restrict: 'E',
-			link: function (scope, element, attr) {
-        $.getScript('https://cdnjs.cloudflare.com/ajax/libs/trix/1.0.0/trix-core.js', function () {
+// we inject quill custom control by injecting admin_js_inject
+enduro_trix.prototype.brick_configuration = {
+	admin_js_inject: 'inject_trix_to_admin.js',
+	default_settings: {}
+}
 
-          element.on('trix-initialize', function() {
-            console.log(2222);
-            element[0].editor.loadHTML(ngModel.$modelValue);
-          });
-        
-          registerEvents('trix-initialize', 'trixInitialize');
-          // $(element[0]).summernote(brick_admin_settings.enduro_summernote);
-
-          // $(element[0]).on('summernote.change', function(_, contents) {
-          //   scope.context[scope.terminatedkey] = contents;
-          // });
-
-					// scope.$watch('current_culture', function () {
-          //   $(element[0]).summernote('code', scope.context[scope.terminatedkey] || '');
-					// })
-
-          // $(element[0]).summernote('code', scope.context[scope.terminatedkey]);
-				})
-			}
-		}
+// cms_context_processor changes each cms context just before page render
+// we use this to add custom control path to all quill controls
+enduro.api.brick_processors.add_processor('cms_context_processor', function (cms_context) {
+	return new Promise(function (resolve, reject) {
+		enduro.api.context_modifiers.add_sibling_to_type(cms_context, 'trix', 'control_path', '/brick/enduro_trix/trix_control')
+		resolve(cms_context)
 	})
+})
+
+module.exports = new enduro_trix()
